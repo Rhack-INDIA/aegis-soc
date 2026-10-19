@@ -105,14 +105,36 @@ curl -X POST localhost:8080/ingest -H 'content-type: application/json' -d '{
 }'
 ```
 
+## CI/CD and security gates
+
+Every push runs `ci.yml`: ruff → pytest → bandit (fail on MEDIUM+) → pip-audit → gitleaks (full
+history) → hadolint → Trivy (fails only on **fixable** HIGH/CRITICAL) → container smoke test that
+boots the image and asserts ≥10 alerts. `deploy.yml` is manual-only, re-runs every gate, uses
+keyless auth via Workload Identity Federation, and sits behind a reviewer-approved `production`
+environment.
+
+`SECURITY-CICD-REPORT.md` records the ten findings from two scanner rounds, what was fixed, what was
+accepted with reasoning, and the measured CPU/memory/latency numbers. Run the same gates locally:
+
+```bash
+pip install ruff bandit pip-audit && ./scripts/security_checks.sh
+```
+
 ## Layout
 
 ```
 app/          schema.py store.py detect.py triage.py injections.py main.py static/
 lab/          gen_corpus.py          # benign + attack + evasion corpus
-scripts/      eval.py                # regenerates every number
-docs/         DEMO_SCRIPT.md VIVA_QA.md DEPLOY_NOTES.md
-REPORT.md     full project report
+scripts/      eval.py                # regenerates every evaluation number
+              loadtest.py            # throughput/latency measurement
+              security_checks.sh     # local mirror of the CI gates
+tests/        test_aegis.py          # 13 behavioural tests
+.github/      workflows/ci.yml, deploy.yml · dependabot.yml
+docs/         DEMO_SCRIPT.md VIVA_QA.md DEPLOY_NOTES.md 4-DAY_PLAN.md
+              Aegis-SOC-Report.pdf · Aegis-SOC-Security-CICD.pdf
+REPORT.md                    architecture + detection evaluation
+SECURITY-CICD-REPORT.md      pipeline, security findings, resource consumption
+evals/        results.json · security/* · resource/*
 ```
 
 ## Deliberate non-goals

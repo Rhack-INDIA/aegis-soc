@@ -107,7 +107,6 @@ def _tokens(text: str) -> list[str]:
 
 def retrieve(query: str, k: int = 3) -> list[dict]:
     docs = [(_tokens(t["kw"] + " " + t["name"] + " " + t["desc"]), t) for t in TECHNIQUES]
-    n = len(docs)
     df: dict[str, int] = {}
     for toks, _ in docs:
         for w in set(toks):

@@ -8,6 +8,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     STORE=firestore \
     AUTO_TRIAGE=1
 
+# Patch OS packages at build time: the base image ships HIGH-severity CVEs in
+# util-linux and friends that Trivy flags. Rebuild regularly to pick up fixes.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -16,6 +22,13 @@ COPY app ./app
 COPY data ./data
 COPY lab ./lab
 COPY scripts ./scripts
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-# Cloud Run injects $PORT; 1 worker keeps memory inside the 512 MiB default.
-CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 1
+# Non-root user: Cloud Run allows it, and it removes a whole privilege class.
+# Numeric UID (not a name) so hadolint DL3066 is satisfied and the host can
+# always resolve it.
+RUN useradd --create-home --uid 10001 aegis && chown -R aegis:aegis /app
+USER 10001
+
+CMD ["/app/docker-entrypoint.sh"]

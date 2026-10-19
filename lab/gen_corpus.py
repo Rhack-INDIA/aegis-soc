@@ -14,9 +14,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 HOST = "web-01"
@@ -218,7 +217,7 @@ def main() -> None:
 
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)
-    start = datetime.now(timezone.utc).replace(microsecond=0)
+    start = datetime.now(UTC).replace(microsecond=0)
 
     b = benign(args.benign, start)
     a, truth = attack(start + timedelta(minutes=2))

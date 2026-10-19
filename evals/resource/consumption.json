@@ -1,0 +1,29 @@
+{
+  "idle": {
+    "cpu_avg_pct": 0.1,
+    "cpu_max_pct": 0.1,
+    "rss_avg_mib": 53.2,
+    "rss_max_mib": 53.2,
+    "samples": 6
+  },
+  "load": {
+    "cpu_avg_pct": 22.6,
+    "cpu_max_pct": 47.1,
+    "rss_avg_mib": 53.4,
+    "rss_max_mib": 54.3,
+    "samples": 26
+  },
+  "loadtest": {
+    "mode": "ingest",
+    "seconds": 30.0,
+    "concurrency": 20,
+    "requests": 12365,
+    "rps": 411.7,
+    "error_rate": 0.0,
+    "p50_ms": 23.9,
+    "p95_ms": 154.2,
+    "p99_ms": 249.8,
+    "mean_ms": 48.5,
+    "max_ms": 542.0
+  }
+}

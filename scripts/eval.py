@@ -45,7 +45,7 @@ def post_batches(path: str, events: list[dict], size: int = 100) -> int:
 
 
 def main() -> None:
-    corpus = [json.loads(l) for l in open("lab/corpus.jsonl")]
+    corpus = [json.loads(line) for line in open("lab/corpus.jsonl")]
     truth = json.load(open("lab/ground_truth.json"))
     benign = [e for e in corpus if e.get("label") == "benign"]
     attacks = [e for e in corpus if e.get("label") == "attack"]

@@ -1,0 +1,5 @@
+Found 2 known vulnerabilities in 1 package
+Name   Version ID              Fix Versions
+------ ------- --------------- ------------
+pytest 8.4.2   PYSEC-2026-1845 9.0.3
+pytest 8.4.2   PYSEC-2026-1845 9.0.3

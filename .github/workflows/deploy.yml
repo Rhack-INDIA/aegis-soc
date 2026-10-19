@@ -1,0 +1,79 @@
+name: deploy
+
+# Manual only. A detection platform should never deploy because someone merged a
+# branch — and every gate below must be green first.
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "Cloud Run region (free tier: us-central1, us-west1, us-east1)"
+        default: us-central1
+        required: true
+
+permissions:
+  contents: read
+  id-token: write   # required for Workload Identity Federation (no JSON keys)
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: re-run all security gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt ruff bandit pip-audit
+      - run: ruff check app lab scripts tests
+      - run: python -m pytest -q
+      - run: bandit -ll -r app
+      - run: pip-audit -r requirements.txt
+
+  deploy:
+    name: build & deploy to Cloud Run
+    runs-on: ubuntu-latest
+    needs: [gate]
+    environment: production     # requires a reviewer approval in repo settings
+    steps:
+      - uses: actions/checkout@v4
+
+      # Keyless auth: GitHub's OIDC token is exchanged for short-lived GCP
+      # credentials. No service-account key ever exists in this repo.
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push
+        run: |
+          IMAGE="${{ inputs.region }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/aegis/aegis-soc:${{ github.sha }}"
+          gcloud builds submit --tag "$IMAGE" --timeout=20m .
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy
+        run: |
+          gcloud run deploy aegis-soc \
+            --image "$IMAGE" \
+            --region "${{ inputs.region }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 512Mi --cpu 1 --max-instances 3 \
+            --set-env-vars "STORE=firestore,GCP_PROJECT=${{ secrets.GCP_PROJECT_ID }},AUTO_TRIAGE=1,APPLY_BLOCKS=simulated" \
+            --set-secrets "GEMINI_API_KEY=gemini-key:latest"
+
+      - name: Verify deployment
+        run: |
+          URL=$(gcloud run services describe aegis-soc \
+            --region "${{ inputs.region }}" --format='value(status.url)')
+          echo "deployed: $URL"
+          curl -sf "$URL/api/health" | tee /dev/stderr | grep -q '"status":"ok"'
+          ALERTS=$(curl -s -X POST "$URL/api/simulate/attack" \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["alerts"])')
+          test "$ALERTS" -ge 10

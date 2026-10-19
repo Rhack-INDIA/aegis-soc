@@ -9,18 +9,19 @@ Deliberate 4-day scope decisions:
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Union
+from typing import Annotated
 
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, triage as triage_mod
-from .detect import RULES, STATE, SEV_ORDER
+from . import detect
+from . import triage as triage_mod
+from .detect import RULES, STATE
 from .schema import Alert, Event
-from .store import Store, get_store, new_alert_id
+from .store import get_store, new_alert_id
 
 BASE = Path(__file__).parent
 app = FastAPI(title="Aegis-SOC", version="1.0.0", docs_url="/api/docs")
@@ -90,7 +91,7 @@ def process_event(raw: dict, auto_triage: bool = True) -> list[dict]:
 # Ingest
 # --------------------------------------------------------------------------- #
 @app.post("/ingest")
-def ingest(body: Union[dict, list] = Body(...)) -> dict:
+def ingest(body: Annotated[dict | list, Body()]) -> dict:
     """Accepts one event, a list of events, or {"events": [...]}."""
     if isinstance(body, dict) and "events" in body:
         events = body["events"]
@@ -142,7 +143,7 @@ def health() -> dict:
         "rules": len(RULES),
         "baseline_processes": len(detect.BASELINE.process_count),
         "baseline_events": detect.BASELINE.total,
-        "time": datetime.now(timezone.utc).isoformat(),
+        "time": datetime.now(UTC).isoformat(),
     }
 
 
@@ -240,7 +241,7 @@ ATTACK_SEQ: list[dict] = [
 
 @app.post("/api/simulate/attack")
 def simulate_attack() -> dict:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     created = []
     for i, ev in enumerate(ATTACK_SEQ):
         ev = {**ev, "ts": (now + timedelta(milliseconds=400 * i)).isoformat()}

@@ -8,8 +8,8 @@ from __future__ import annotations
 import pytest
 from conftest import event
 
-from app.schema import Event, TriageResult
 from app import triage as triage_mod
+from app.schema import Event, TriageResult
 
 
 # --------------------------------------------------------------------------- #

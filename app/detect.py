@@ -16,9 +16,10 @@ import os
 import re
 import threading
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Callable, Optional
+from datetime import datetime, timedelta
+from typing import Optional
 
 from .schema import Event
 
@@ -151,7 +152,7 @@ class Baseline:
         self.total: int = int(data.get("total", 0)) or sum(self.process_count.values()) or 1
 
     @classmethod
-    def load(cls, path: str = "data/baseline.json") -> "Baseline":
+    def load(cls, path: str = "data/baseline.json") -> Baseline:
         if os.path.exists(path):
             try:
                 with open(path) as fh:

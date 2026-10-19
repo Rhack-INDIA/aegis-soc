@@ -1,0 +1,46 @@
+{
+  "url": "http://127.0.0.1:8098",
+  "concurrency": 20,
+  "seconds": 20,
+  "results": [
+    {
+      "mode": "health",
+      "seconds": 20.0,
+      "concurrency": 20,
+      "requests": 9072,
+      "rps": 452.9,
+      "error_rate": 0.0,
+      "p50_ms": 26.5,
+      "p95_ms": 135.3,
+      "p99_ms": 202.8,
+      "mean_ms": 44.1,
+      "max_ms": 375.4
+    },
+    {
+      "mode": "read",
+      "seconds": 20.0,
+      "concurrency": 20,
+      "requests": 8987,
+      "rps": 448.7,
+      "error_rate": 0.0,
+      "p50_ms": 26.1,
+      "p95_ms": 135.9,
+      "p99_ms": 213.3,
+      "mean_ms": 44.5,
+      "max_ms": 444.7
+    },
+    {
+      "mode": "ingest",
+      "seconds": 20.0,
+      "concurrency": 20,
+      "requests": 7965,
+      "rps": 397.7,
+      "error_rate": 0.0,
+      "p50_ms": 23.6,
+      "p95_ms": 160.8,
+      "p99_ms": 259.1,
+      "mean_ms": 50.2,
+      "max_ms": 668.8
+    }
+  ]
+}

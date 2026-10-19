@@ -5,7 +5,7 @@ to defend in a viva, but still recognisable as real-world normalisation.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -19,7 +19,7 @@ DATA_FIELDS = (
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Event(BaseModel):
@@ -43,7 +43,7 @@ class Event(BaseModel):
     @classmethod
     def _parse_ts(cls, v: Any) -> Any:
         if isinstance(v, (int, float)):
-            return datetime.fromtimestamp(v, tz=timezone.utc)
+            return datetime.fromtimestamp(v, tz=UTC)
         if isinstance(v, str):
             s = v.replace("Z", "+00:00")
             return datetime.fromisoformat(s)
@@ -55,7 +55,7 @@ class Event(BaseModel):
         return v if v not in (None, "") else ("unknown" if v is None else v)
 
     @classmethod
-    def from_raw(cls, raw: dict) -> "Event":
+    def from_raw(cls, raw: dict) -> Event:
         """Normalise an arbitrary dict, dropping ground-truth fields."""
         clean = {k: v for k, v in raw.items() if k in DATA_FIELDS or k == "ts"}
         if "cmdline" in clean and isinstance(clean["cmdline"], list):

@@ -11,10 +11,10 @@ import os
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Optional
 
-from .schema import Alert, Event, utcnow
+from .schema import Alert
 
 SEV_ORDER = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 
@@ -101,7 +101,7 @@ class SqliteStore(Store):
         processed in two seconds would look like one instant and collapse
         distinct detections into a single alert.
         """
-        ref = ref_ts or datetime.now(timezone.utc)
+        ref = ref_ts or datetime.now(UTC)
         cutoff = (ref - timedelta(seconds=seconds)).timestamp()
         with self._lock:
             rows = self._db.execute("SELECT fingerprint, ts FROM alerts").fetchall()
@@ -177,7 +177,7 @@ class FirestoreStore(Store):
 
     def recent_fingerprints(self, seconds: int = 300,
                             ref_ts: Optional[datetime] = None) -> set[str]:
-        ref = ref_ts or datetime.now(timezone.utc)
+        ref = ref_ts or datetime.now(UTC)
         cutoff = (ref - timedelta(seconds=seconds)).isoformat()
         q = (self._client.collection(self.COLL)
              .where("ts", ">=", cutoff).select(["fingerprint"]))

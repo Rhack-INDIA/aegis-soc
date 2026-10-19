@@ -1,0 +1,15 @@
+# Lint policy. Deliberately narrow: correctness, imports, modernisation and
+# the bugbear rules that catch real defects. Stylistic churn (flake8-comprehensions,
+# line-length bikeshedding) is excluded so the gate stays meaningful.
+target-version = "py312"
+line-length = 110
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",  # line length enforced by the formatter, not the linter
+    "UP045", # Optional[X] kept for readability in pydantic models
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["B017"]  # broad raises() is acceptable when asserting schema rejection
