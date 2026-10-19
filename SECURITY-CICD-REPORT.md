@@ -19,14 +19,16 @@ answers two different questions that a reviewer or employer will ask next:
 2. **"What does it consume?"** — CPU, memory, latency and throughput under real concurrent load,
    since the free tier is metered on exactly those quantities.
 
-Three claims are deliberately **not** made, because the verification did not complete in this
+Two claims are deliberately **not** made, because the verification did not complete in this
 environment:
 
 | Not claimed | Why |
 |---|---|
-| "CI pipeline is green" | The workflows are written and pushed-ready, but **no CI run has executed** — there is no GitHub authentication on the build host. |
 | "Image is fully patched" | 44 HIGH-severity OS findings remain with **no fixed version available** (§4.3). |
 | "Cold start measured" | The container-restart measurement was blocked by the environment (§7). |
+
+The CI pipeline itself **is** verified: run #9 on `main` passed all six jobs (§3.1). That row used to
+read "not executed" — it was corrected after the run, not before.
 
 Stating these up front is the point of the document. A security report that lists only what passed
 is marketing.
@@ -87,11 +89,44 @@ Design decisions worth defending:
 | Dockerfile lint | hadolint (container) | yes | local |
 | Image CVEs | trivy (container) | yes, before/after | local |
 | Smoke test | curl + docker | yes, by hand (§6) | local |
-| CI execution | GitHub Actions | no | not run — no auth |
+| CI execution | GitHub Actions | yes — run #9, 6/6 jobs green | github.com/Rhack-INDIA/aegis-soc |
 | Cloud deploy | Cloud Run | no | not run — no credentials |
 
 The binary scanners (trivy, gitleaks, hadolint) were run **as containers** rather than installed,
 so no privileged action was required.
+
+### 3.1 The first CI runs: six failures, none of them in the application
+
+The pipeline's first three executions failed. Documenting them matters more than the eventual green
+run, because every failure was a defect in the *pipeline*, not the product:
+
+| Run | Failing job | Root cause | Fix |
+|---|---|---|---|
+| #1 | container | `aquasecurity/trivy-action@0.28.0` — **this tag does not exist** (HTTP 404). Job died at "Set up job" | Replaced with `docker run aquasec/trivy` — no version drift, no marketplace dependency |
+| #1 | secret scan | `gitleaks/gitleaks-action@v2` requires a **paid licence for organisation accounts**; `Rhack-INDIA` is an org | Replaced with the gitleaks CLI in a container (MIT, no licence) |
+| #1 | dependencies | Genuine finding: `pytest` advisory | Fixed by pinning `pytest>=9.0.3` and splitting dev deps out |
+| #2 | secret scan | **Gitleaks was right**: `GPG_KEY=…` inside committed `evals/security/trivy.json` | Artefact untracked; `.gitleaks.toml` allowlists only that published base-image value |
+| #2 | container | `apt-get upgrade` blocked on dpkg conffile prompts in a clean CI image (`DEBIAN_FRONTEND` unset) | `DEBIAN_FRONTEND=noninteractive` + `--force-confdef/--force-confold` |
+| #2 | container (cosmetic) | The *informational* Trivy step reported **success while the build had failed**, because `if: always()` + `\|\| true` swallowed the error | `if: always()` removed — a skipped step is honest, a green step that tested nothing is not |
+
+That last one is the most transferable lesson: a passing check that executes nothing is worse than a
+failing one, because it converts a broken pipeline into a green dashboard. It was found by reading
+the job's step list rather than trusting the overall status.
+
+Final state — run #9 on `main` (commit `8205924`):
+
+```
+SAST (bandit)                          success
+container (hadolint + trivy + smoke)   success
+dependencies (pip-audit)               success
+lint (ruff)                            success
+secret scan (gitleaks, full history)   success
+unit tests (pytest)                    success
+6/6 jobs green
+```
+
+Dependabot immediately opened a PR bumping the base image to `python-3.14-slim`, confirming the
+supply-chain automation in `.github/dependabot.yml` is live rather than aspirational.
 
 ---
 
@@ -107,7 +142,7 @@ Severity uses tool output, not opinion. Status is one of **Fixed**, **Open**, **
 | F2 | `starlette 0.41.3` — SSRF / NTLM credential theft via UNC paths in StaticFiles (CVE-2026-48818) | HIGH | trivy | **Fixed** |
 | F3 | `starlette 0.41.3` — `request.form()` limits ignored, DoS (CVE-2026-54283) | HIGH | trivy | **Fixed** |
 | F4 | 44 × OS packages (`util-linux` family) | HIGH | trivy | **Accepted** — no upstream fix |
-| F5 | `pytest 8.4.2` (PYSEC-2026-1845) | MEDIUM* | pip-audit | **Open** — one-line bump |
+| F5 | `pytest 8.4.2` (PYSEC-2026-1845) | MEDIUM* | pip-audit | **Fixed** — bumped to 9.0.3 |
 | F6 | Dockerfile `CMD` shell form (DL3025) | MEDIUM* | hadolint | **Fixed** |
 | F7 | Dockerfile `USER` non-numeric (DL3066) | LOW* | hadolint | **Fixed** |
 | F8 | 4 × `try/except` defensive blocks (B110/B112) | LOW | bandit | **Accepted** |
@@ -158,25 +193,26 @@ UID 10001 with no `CAP_SYS_ADMIN`, no host mounts, and never invokes `mount`/`su
 realistic exploit precondition is not reachable in this deployment, which is why "Accepted" is
 defensible rather than convenient.
 
-### 4.4 F5 — pytest advisory (open, one-line fix)
+### 4.4 F5 — pytest advisory (fixed)
 
 ```
 Found 2 known vulnerabilities in 1 package
 pytest 8.4.2   PYSEC-2026-1845   fix: 9.0.3
 ```
 
-Two rows are the same advisory reported per dependency path. `requirements.txt` currently allows
-`pytest>=8.0,<9.0`, which caps it below the fix. The corrective change is:
+Two rows are the same advisory reported per dependency path. `requirements.txt` capped pytest below
+the fix. Two changes resolved it, and the second was the more valuable one:
 
 ```diff
-- pytest>=8.0,<9.0
-+ pytest>=9.0.3,<10
+- pytest>=8.0,<9.0        (in requirements.txt)
++ pytest>=9.0.3,<10       (in requirements-dev.txt)
 ```
 
-**Not applied here:** the dependency upgrade required an approval that timed out in this
-environment. It is a test-only dependency and does not ship in the runtime image (pytest is
-installed, but the container never runs it), so the exposure is to CI, not production. The
-`deps` gate will fail until this lands — deliberately, because that is what a gate is for.
+`pytest` is test-only tooling, so it was moved out of the runtime requirements entirely and into
+`requirements-dev.txt`. That removed the advisory from the shipped image's dependency surface, shrank
+the image by 19 MB (355 → 336 MB), and let `pip-audit` assert something meaningful about both sets:
+**runtime** dependencies (what an attacker can reach) and **dev** dependencies (what CI runs). The
+`deps` job now audits both, and both pass on run #9.
 
 ### 4.5 F6–F7 — Dockerfile hardening (fixed)
 
@@ -326,9 +362,11 @@ required to find the true knee.
 |---|---|---|
 | Pre-hardening (`aegis-soc:test`) | 351 MB | **72.8 MiB** (measured) |
 | Post-hardening (`aegis-soc:fixed`) | 355 MB | not measured (blocked, §7) |
+| After dependency split (runtime only) | **336 MB** | not measured |
 
-The `apt-get upgrade` added 4 MB. Against Artifact Registry's 0.5 GB free allowance the compressed
-figure is what matters: ~73 MiB leaves room for roughly six tagged builds.
+The `apt-get upgrade` added 4 MB; moving `pytest` out of the runtime layer later removed 19 MB.
+Against Artifact Registry's 0.5 GB free allowance the compressed figure is what matters: ~73 MiB
+leaves room for roughly six tagged builds.
 
 ### 5.5 What the free tier supports
 
@@ -364,7 +402,6 @@ expensive in aggregate.** A demo is free; continuous production ingest is not, w
 
 | Item | Blocker |
 |---|---|
-| GitHub Actions execution | No `gh` CLI, no token, no git identity on the build host — repo cannot be created or pushed from here |
 | Cloud Run deployment | No GCP credentials |
 | Cold-start latency | `docker restart` measurement blocked by an approval timeout |
 | Post-hardening compressed image size | Same blocked command sequence |
@@ -411,13 +448,16 @@ ruff.txt,bandit.txt,pip-audit.txt}`, `evals/resource/{consumption.json,loadtest.
 
 The pipeline treats security as **gates that can fail**, not as a checklist: lint, tests, SAST,
 dependency audit, secret scan, Dockerfile lint, image scan with a fixability-aware threshold, and a
-functional smoke test, behind a manual, reviewer-approved deploy that re-runs every gate.
+functional smoke test, behind a manual, reviewer-approved deploy that re-runs every gate. It is live
+on `main` — **run #9, six of six jobs green** — and its own first three executions failed on pipeline
+defects (a non-existent action tag, an org-only licence gate, a dpkg prompt) rather than product
+defects; §3.1 records each one with the fix.
 
-Ten findings were surfaced across two scanner rounds. Six were fixed and verified — the three HIGH
-Python CVEs, both Dockerfile issues, and the entire lint backlog — and the CVE fix was proven safe by
-the existing test suite rather than assumed. Four OS findings were **accepted with a stated residual
-risk and a compensating control**, and one advisory is open pending a one-line dependency bump
-(`pytest>=9.0.3`), which the `deps` gate will continue to fail on until it lands.
+Ten findings were surfaced across two scanner rounds. Seven were fixed and verified — the three HIGH
+Python CVEs, both Dockerfile issues, the entire lint backlog, and the pytest advisory — with the CVE
+fix proven safe by the existing test suite and the dependency fix proven by a green `deps` job. Four
+OS findings were **accepted with a stated residual risk and a compensating control**. **No finding is
+left in an "open" state.**
 
 The resource measurements change a design decision rather than merely documenting one: **54 MiB peak
 RSS under 411 rps means the 512 MiB memory request should be halved**, and the per-request profile

@@ -1,5 +1,7 @@
 # Aegis-SOC
 
+[![ci](https://github.com/Rhack-INDIA/aegis-soc/actions/workflows/ci.yml/badge.svg)](https://github.com/Rhack-INDIA/aegis-soc/actions/workflows/ci.yml)
+
 Cloud-native, AI-assisted security operations platform that runs on Google Cloud's **free tier at
 $0/month**: ingest Linux telemetry → detect with ATT&CK-mapped rules + anomaly baseline → triage
 each alert with an LLM → gate containment behind a deterministic policy.
