@@ -1,6 +1,6 @@
 # Single image for API + console. Kept small on purpose: Artifact Registry's
 # free tier is 0.5 GB/month, so no torch, no sklearn, no Node toolchain.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Noninteractive is required: `apt-get upgrade` in a clean CI image otherwise
 # stops on dpkg conffile prompts (tzdata/openssl) and the build fails with no
