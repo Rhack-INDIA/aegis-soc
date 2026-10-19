@@ -1,0 +1,12 @@
+# Keep the build context small and stop dev artefacts reaching the image.
+.venv/
+.git/
+.github/
+evals/
+docs/
+tests/
+__pycache__/
+*.pyc
+*.md
+data/*.db
+.env

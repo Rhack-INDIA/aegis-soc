@@ -77,7 +77,8 @@ jobs:
       - name: gitleaks
         run: |
           docker run --rm -v "$PWD":/repo zricethezav/gitleaks:latest \
-            detect --source=/repo --no-banner --redact --verbose
+            detect --source=/repo --config=/repo/.gitleaks.toml \
+            --no-banner --redact --verbose
 
   container:
     name: container (hadolint + trivy + smoke)
@@ -100,8 +101,11 @@ jobs:
             aquasec/trivy:latest image --quiet --severity HIGH,CRITICAL \
             --ignore-unfixed --exit-code 1 aegis-soc:ci
 
+      # No `if: always()` here on purpose: with it, this step reported SUCCESS
+      # while the build had failed, because `|| true` swallowed the error and
+      # nothing was actually scanned. A green step that tested nothing is worse
+      # than a skipped one.
       - name: Scan image — full inventory (informational)
-        if: always()
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
             aquasec/trivy:latest image --quiet --severity HIGH,CRITICAL \

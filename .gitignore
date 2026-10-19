@@ -6,3 +6,5 @@ data/*.db
 *.tfstate
 *.tfstate.backup
 evals/results.json
+evals/security/trivy.json
+evals/security/*.sarif
