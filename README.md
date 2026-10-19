@@ -85,6 +85,30 @@ Secret Manager entry for the key, builds one image via Cloud Build, and deploys 
 `--max-instances=3 --memory=512Mi`. See `docs/DEPLOY_NOTES.md` for the cost guardrails to apply
 first.
 
+## Deploy to AWS (single EC2 instance)
+
+```bash
+REGION=us-east-1 ./deploy-aws.sh
+```
+
+Launches one `t3.micro` from the latest Amazon Linux 2023 AMI; the instance installs Docker, clones
+this repository, builds the image and starts the container. The console is then reachable two ways:
+`http://<public-ip>:8080` (security group opens 8080) and a Cloudflare quick-tunnel HTTPS URL that is
+printed to the instance console — no inbound port required for that path.
+
+```bash
+aws ec2 get-console-output --region us-east-1 --instance-id <id> --latest \
+  | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | head -1
+```
+
+Costs: `t3.micro` is ~$0.0104/hr (~$7.60/month) plus a few cents of EBS; the 750 hr/month free tier
+applies only to accounts younger than 12 months. **Terminate the instance when the demo is over** —
+the script prints the exact command. Unlike the GCP path this is not a $0 design; it is the
+fastest way to get a real cloud-hosted URL without a Firestore/Artifact Registry setup.
+
+Caveats, stated plainly: the app has no user authentication, so opening 8080 to `0.0.0.0/0` is
+demo-only; use the tunnel URL and restrict the security group if it will stay up.
+
 ## API
 
 | Method | Path | Purpose |
