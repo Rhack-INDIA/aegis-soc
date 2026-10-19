@@ -23,7 +23,7 @@ jobs:
     name: re-run all security gates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -40,7 +40,7 @@ jobs:
     needs: [gate]
     environment: production     # requires a reviewer approval in repo settings
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Keyless auth: GitHub's OIDC token is exchanged for short-lived GCP
       # credentials. No service-account key ever exists in this repo.
