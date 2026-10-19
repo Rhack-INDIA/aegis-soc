@@ -1,0 +1,9 @@
+Unable to find image 'hadolint/hadolint:latest' locally
+latest: Pulling from hadolint/hadolint
+219eb4d60051: Pulling fs layer
+219eb4d60051: Download complete
+219eb4d60051: Pull complete
+facf8f5e5ecd: Download complete
+Digest: sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d
+Status: Downloaded newer image for hadolint/hadolint:latest
+-:21 DL3025 [1m[93mwarning[0m: Use arguments JSON notation for CMD and ENTRYPOINT arguments

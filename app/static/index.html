@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aegis-SOC — Cloud-Native AI Security Operations</title>
+<style>
+  :root{
+    --bg:#0a0d14; --panel:#111725; --panel2:#0d1320; --line:#1e2940;
+    --txt:#e6edf7; --dim:#8b9bb4; --acc:#3ea6ff; --ok:#2ecc71;
+    --med:#f5a623; --high:#ff7b39; --crit:#ff3b5c; --low:#5b7fa6;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#12203a 0%,var(--bg) 55%);
+       color:var(--txt);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);
+         background:rgba(10,13,20,.85);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+  .shield{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3ea6ff,#7a5cff);
+          display:grid;place-items:center;font-size:14px}
+  .sub{color:var(--dim);font-size:12px}
+  .spacer{flex:1}
+  .badge{font:11px/1 var(--mono);padding:6px 9px;border-radius:999px;border:1px solid var(--line);
+         color:var(--dim);background:var(--panel2);white-space:nowrap}
+  .badge b{color:var(--txt);font-weight:600}
+  .badge.mock{border-color:#4a3a12;color:#d8a94b}
+  .badge.live{border-color:#17452c;color:#54d98c}
+  main{padding:18px 22px 60px;max-width:1500px;margin:0 auto}
+  .pipe{display:flex;gap:6px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .pipe div{font:11px/1 var(--mono);color:var(--dim);border:1px solid var(--line);
+            background:var(--panel2);padding:8px 11px;border-radius:8px}
+  .pipe span{color:#33415c}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+        border-radius:12px;padding:13px 15px}
+  .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim)}
+  .card .v{font-size:26px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .card.crit .v{color:var(--crit)} .card.high .v{color:var(--high)}
+  .card.ok .v{color:var(--ok)} .card.acc .v{color:var(--acc)}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  button{cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--panel);
+         color:var(--txt);padding:9px 14px;font-weight:600;font-size:13px;transition:.15s}
+  button:hover{border-color:#2c3d5c;transform:translateY(-1px)}
+  button.primary{background:linear-gradient(135deg,#2f6fed,#3ea6ff);border:none;color:#fff}
+  button.danger{background:#2a1018;border-color:#5a1f2c;color:#ff8fa3}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .layout{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .panel h2{margin:0;padding:12px 15px;font-size:12px;text-transform:uppercase;letter-spacing:.9px;
+            color:var(--dim);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:9px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;
+     color:var(--dim);border-bottom:1px solid var(--line);font-weight:600}
+  td{padding:10px 12px;border-bottom:1px solid #151e2e;vertical-align:top}
+  tbody tr{cursor:pointer} tbody tr:hover{background:#141c2c}
+  tbody tr.sel{background:#152238;box-shadow:inset 3px 0 0 var(--acc)}
+  .chip{font:10.5px/1 var(--mono);padding:5px 8px;border-radius:6px;display:inline-block;font-weight:600}
+  .sev-critical{background:#3a0d18;color:#ff6b85;border:1px solid #5c1526}
+  .sev-high{background:#3a1c0d;color:#ff9b5c;border:1px solid #5c2c15}
+  .sev-medium{background:#3a2f0d;color:#e8c05c;border:1px solid #5c4a15}
+  .sev-low{background:#131f30;color:#7fa6d0;border:1px solid #1f3350}
+  .tech{font:11.5px/1 var(--mono);color:var(--acc);background:#0e1e33;border:1px solid #17324f;
+        padding:4px 7px;border-radius:6px}
+  .muted{color:var(--dim)} .mono{font-family:var(--mono);font-size:12px}
+  .empty{padding:38px 18px;text-align:center;color:var(--dim)}
+  .detail{padding:15px}
+  .detail h3{margin:0 0 4px;font-size:16px}
+  .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:12.5px;margin:12px 0}
+  .kv .k{color:var(--dim)}
+  .narr{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--acc);
+        border-radius:8px;padding:11px 13px;font-size:13px;margin:10px 0}
+  .narr.bad{border-left-color:var(--crit)}
+  .meta{font:11px/1.6 var(--mono);color:var(--dim);margin-top:8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  pre{background:#080b12;border:1px solid var(--line);border-radius:8px;padding:10px;
+      overflow:auto;max-height:210px;font:11.5px/1.55 var(--mono);color:#a9c0dd;margin:8px 0 0}
+  .inj{margin-top:16px}
+  .inj .cols{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .inj .cols>div{padding:12px 14px}
+  .inj .cols>div+div{border-left:1px solid var(--line)}
+  .asr{font:700 30px/1 var(--mono);margin:6px 0 2px}
+  .asr.good{color:var(--ok)} .asr.bad{color:var(--crit)}
+  .toast{position:fixed;right:18px;bottom:18px;background:#122033;border:1px solid #22405f;
+         color:var(--txt);padding:12px 16px;border-radius:10px;font-size:13px;opacity:0;
+         transform:translateY(8px);transition:.2s;max-width:380px;z-index:50}
+  .toast.show{opacity:1;transform:none}
+  @media(max-width:1080px){.layout{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="shield">🛡</div>
+    <div>Aegis-SOC <div class="sub">Cloud-native AI security operations · GCP free tier</div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="badge" id="h-rules">rules —</div>
+  <div class="badge" id="h-store">store —</div>
+  <div class="badge mock" id="h-llm">llm —</div>
+</header>
+
+<main>
+  <div class="pipe">
+    <div>① ingest <span>▸</span></div>
+    <div>② detect <span>▸</span></div>
+    <div>③ triage <span>▸</span></div>
+    <div>④ contain</div>
+    <div class="spacer"></div>
+    <div id="clock" class="muted mono"></div>
+  </div>
+
+  <div class="grid">
+    <div class="card acc"><div class="k">Alerts</div><div class="v" id="s-total">0</div></div>
+    <div class="card crit"><div class="k">Critical</div><div class="v" id="s-crit">0</div></div>
+    <div class="card high"><div class="k">High</div><div class="v" id="s-high">0</div></div>
+    <div class="card ok"><div class="k">Blocked</div><div class="v" id="s-blocked">0</div></div>
+    <div class="card"><div class="k">Techniques covered</div><div class="v" id="s-tech">0</div></div>
+  </div>
+
+  <div class="bar">
+    <button class="primary" id="btn-attack">▶ Run attack simulation</button>
+    <button id="btn-inject">🧪 Injection test (before / after)</button>
+    <button class="ghost" id="btn-refresh">↻ Refresh</button>
+    <button class="danger" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2><span>Alert queue</span><span id="q-count" class="muted"></span></h2>
+      <table>
+        <thead><tr><th>Time</th><th>Sev</th><th>Detection</th><th>ATT&CK</th><th>Entity</th><th>Verdict</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6" class="empty">No alerts yet — run the attack simulation.</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2><span>Alert detail</span><span id="d-id" class="muted mono"></span></h2>
+      <div class="detail" id="detail"><div class="empty">Select an alert to see the triage narrative.</div></div>
+    </div>
+  </div>
+
+  <div class="panel inj" id="inj-panel" style="display:none">
+    <h2><span>Prompt-injection resilience</span><span class="muted">attacker-controlled log text</span></h2>
+    <div class="cols">
+      <div>
+        <div class="muted" style="font-size:11px;letter-spacing:.7px;text-transform:uppercase">Without defences</div>
+        <div class="asr bad" id="asr-off">—</div>
+        <div class="muted" id="asr-off-sub" style="font-size:12px">attack success rate</div>
+      </div>
+      <div>
+        <div class="muted" style="font-size:11px;letter-spacing:.7px;text-transform:uppercase">With defences D1–D5</div>
+        <div class="asr good" id="asr-on">—</div>
+        <div class="muted" id="asr-on-sub" style="font-size:12px">attack success rate</div>
+      </div>
+    </div>
+    <table><thead><tr><th>Payload (truncated)</th><th>Undefended</th><th>Defended</th><th>Critic</th></tr></thead>
+      <tbody id="inj-rows"></tbody></table>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let ALERTS = [], SEL = null;
+
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
+function chip(s){ return `<span class="chip sev-${esc(s)}">${esc(s).toUpperCase()}</span>`; }
+function t(ts){ try{ return new Date(ts).toLocaleTimeString([], {hour12:false}); }catch(e){ return "—"; } }
+
+async function j(url, opt){ const r = await fetch(url, opt); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+async function health(){
+  try{
+    const h = await j("/api/health");
+    $("#h-rules").innerHTML = `<b>${h.rules}</b> rules · <b>${h.baseline_processes}</b> baseline procs`;
+    $("#h-store").innerHTML = `store <b>${esc(h.store)}</b>`;
+    const mock = h.llm_mode.startsWith("mock");
+    const el = $("#h-llm");
+    el.className = "badge " + (mock ? "mock" : "live");
+    el.innerHTML = `llm <b>${mock ? "simulated" : "gemini"}</b>`;
+    el.title = mock ? "No GEMINI_API_KEY set — deterministic mock model. Results labelled simulated." : h.model;
+  }catch(e){ }
+}
+
+async function load(){
+  try{
+    const [a, s] = await Promise.all([j("/api/alerts?limit=200"), j("/api/stats")]);
+    ALERTS = a.alerts;
+    $("#s-total").textContent = s.total;
+    $("#s-crit").textContent = s.by_severity.critical || 0;
+    $("#s-high").textContent = s.by_severity.high || 0;
+    $("#s-blocked").textContent = s.by_status.blocked || 0;
+    $("#s-tech").textContent = s.techniques;
+    $("#q-count").textContent = ALERTS.length ? `${ALERTS.length} shown` : "";
+    render();
+    if(!SEL && ALERTS.length) select(ALERTS[0].id);
+  }catch(e){ }
+}
+
+function render(){
+  const tb = $("#rows");
+  if(!ALERTS.length){ tb.innerHTML = '<tr><td colspan="6" class="empty">No alerts yet — run the attack simulation.</td></tr>'; return; }
+  tb.innerHTML = ALERTS.map(a => {
+    const v = a.triage ? a.triage.verdict.replace("_"," ") : "pending";
+    const entity = [a.event.user, a.event.host].filter(Boolean).join("@");
+    return `<tr data-id="${esc(a.id)}" class="${SEL===a.id?'sel':''}">
+      <td class="mono muted">${t(a.ts)}</td>
+      <td>${chip(a.severity)}</td>
+      <td>${esc(a.title)}<div class="muted mono" style="font-size:11px">${esc(a.rule_id)} · conf ${a.score}</div></td>
+      <td><span class="tech">${esc(a.technique || "—")}</span></td>
+      <td class="mono">${esc(entity || a.src_ip || "—")}</td>
+      <td class="muted">${esc(v)}${a.status==="blocked"?' <span style="color:#2ecc71">■ blocked</span>':''}</td>
+    </tr>`;
+  }).join("");
+  tb.querySelectorAll("tr[data-id]").forEach(tr => tr.onclick = () => select(tr.dataset.id));
+}
+
+function select(id){
+  SEL = id; render();
+  const a = ALERTS.find(x => x.id === id); if(!a) return;
+  $("#d-id").textContent = "#" + a.id;
+  const tr = a.triage || {};
+  const meta = tr._meta || {};
+  const isFP = tr.verdict === "false_positive";
+  $("#detail").innerHTML = `
+    <h3>${esc(a.title)}</h3>
+    <div class="muted mono" style="font-size:12px">${esc(a.rule_id)} · ${esc(a.technique||"—")} · score ${a.score} · ${esc(a.status)}</div>
+    <div class="kv">
+      <div class="k">Host</div><div class="mono">${esc(a.event.host)}</div>
+      <div class="k">User</div><div class="mono">${esc(a.event.user || "—")}</div>
+      <div class="k">Source IP</div><div class="mono">${esc(a.event.src_ip || "—")}</div>
+      <div class="k">Why flagged</div><div>${esc(a.why || "—")}</div>
+    </div>
+    ${tr.verdict ? `
+      <div class="narr ${isFP?'bad':''}">
+        <b>${esc(tr.verdict.replace("_"," "))}</b> · severity ${esc(tr.severity)} · confidence ${esc(tr.confidence)}
+        <div style="margin-top:6px">${esc(tr.narrative)}</div>
+        <div class="muted" style="margin-top:6px"><b>Action:</b> ${esc(tr.recommended_action)}</div>
+      </div>
+      <div class="meta">model: ${esc(meta.mode)} · schema ${meta.schema_valid?"valid":"REJECTED"} · critic: ${esc(meta.critic)}
+        · injection ${meta.injection_detected?"DETECTED":"none"} ${meta.simulated?"· <b>simulated output</b>":""}</div>
+    ` : '<div class="empty">Triage pending…</div>'}
+    <div class="row">
+      <button class="primary" id="btn-block">⛔ Contain source IP</button>
+      <button id="btn-t-off">Re-triage (defences off)</button>
+      <button id="btn-t-on">Re-triage (defences on)</button>
+    </div>
+    <pre>${esc(JSON.stringify(a.event, null, 2))}</pre>
+  `;
+  $("#btn-block").onclick = async () => {
+    try{
+      const d = await j(`/api/alerts/${id}/block`, {method:"POST"});
+      const failed = Object.entries(d.checks).filter(([k,v]) => !v).map(([k]) => k);
+      toast(d.allowed ? `Blocked ${d.action.target} (${d.action.rule})`
+                      : `Policy refused: ${failed.join(", ")}`);
+      await load();
+    }catch(e){ toast("Block failed: " + e.message); }
+  };
+  $("#btn-t-off").onclick = () => retriage(id, false);
+  $("#btn-t-on").onclick = () => retriage(id, true);
+}
+
+async function retriage(id, defenses){
+  try{
+    const r = await j(`/api/alerts/${id}/triage?defenses=${defenses}`, {method:"POST"});
+    toast(`Re-triaged (defences ${defenses?"on":"off"}): ${r.verdict} — ${r._meta.critic}`);
+    await load(); select(id);
+  }catch(e){ toast(e.message); }
+}
+
+$("#btn-attack").onclick = async () => {
+  const b = $("#btn-attack"); b.disabled = true; b.textContent = "running…";
+  try{
+    const r = await j("/api/simulate/attack", {method:"POST"});
+    toast(`${r.sent} events → ${r.alerts} alerts`);
+    await load();
+    if(r.payloads.length) select(r.payloads[0].id);
+  }catch(e){ toast(e.message); }
+  finally{ b.disabled = false; b.textContent = "▶ Run attack simulation"; }
+};
+
+$("#btn-inject").onclick = async () => {
+  const b = $("#btn-inject"); b.disabled = true; b.textContent = "testing…";
+  try{
+    const r = await j("/api/simulate/injection", {method:"POST"});
+    $("#inj-panel").style.display = "block";
+    $("#asr-off").textContent = Math.round(r.without_defenses.asr*100) + "%";
+    $("#asr-on").textContent = Math.round(r.with_defenses.asr*100) + "%";
+    $("#asr-off-sub").textContent = `${r.without_defenses.hijacked} of ${r.without_defenses.total} payloads hijacked the verdict`;
+    $("#asr-on-sub").textContent = `${r.with_defenses.hijacked} of ${r.with_defenses.total} payloads hijacked the verdict`;
+    $("#inj-rows").innerHTML = r.without_defenses.rows.map((row,i) => {
+      const on = r.with_defenses.rows[i];
+      return `<tr><td class="mono" style="font-size:11.5px">${esc(row.id)} · ${esc(row.payload)}</td>
+        <td style="color:${row.hijacked?'var(--crit)':'var(--ok)'}">${esc(row.verdict)}</td>
+        <td style="color:${on.hijacked?'var(--crit)':'var(--ok)'}">${esc(on.verdict)}</td>
+        <td class="muted" style="font-size:11px">${esc(on.critic).slice(0,42)}</td></tr>`;
+    }).join("");
+    $("#inj-panel").scrollIntoView({behavior:"smooth"});
+  }catch(e){ toast(e.message); }
+  finally{ b.disabled = false; b.textContent = "🧪 Injection test (before / after)"; }
+};
+
+$("#btn-refresh").onclick = load;
+$("#btn-reset").onclick = async () => {
+  if(!confirm("Clear all alerts?")) return;
+  await j("/api/reset", {method:"POST"});
+  SEL = null; $("#inj-panel").style.display="none";
+  $("#detail").innerHTML = '<div class="empty">Select an alert to see the triage narrative.</div>';
+  await load(); toast("Cleared");
+};
+
+setInterval(() => { $("#clock").textContent = new Date().toISOString().slice(11,19) + " UTC"; }, 1000);
+health(); load(); setInterval(load, 6000);
+</script>
+</body>
+</html>

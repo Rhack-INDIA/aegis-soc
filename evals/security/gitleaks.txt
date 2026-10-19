@@ -1,0 +1,23 @@
+Unable to find image 'zricethezav/gitleaks:latest' locally
+latest: Pulling from zricethezav/gitleaks
+4c3e14845bb7: Pulling fs layer
+e2bec8d3df2d: Pulling fs layer
+fe5506365b94: Pulling fs layer
+d741ee1608f3: Pulling fs layer
+d741ee1608f3: Download complete
+4c3e14845bb7: Download complete
+e2bec8d3df2d: Download complete
+fe5506365b94: Download complete
+d741ee1608f3: Pull complete
+2b7176d4001f: Download complete
+e2bec8d3df2d: Pull complete
+4c3e14845bb7: Pull complete
+fe5506365b94: Pull complete
+Digest: sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+Status: Downloaded newer image for zricethezav/gitleaks:latest
+[90m8:59AM[0m [31mERR[0m [1m[git] fatal: not a git repository (or any parent up to mount point /)[0m
+[90m8:59AM[0m [31mERR[0m [1m[git] Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).[0m
+[90m8:59AM[0m [31mERR[0m [36merror=[0m[31m[1m"stderr is not empty"[0m[0m
+[90m8:59AM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m8:59AM[0m [32mINF[0m [1mscanned ~0 bytes (0) in 44.9ms[0m
+[90m8:59AM[0m [32mINF[0m [1mno leaks found[0m

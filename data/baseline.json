@@ -1,0 +1,28 @@
+{
+  "process_count": {
+    "nginx": 43,
+    "df": 32,
+    "ps": 35,
+    "bash": 38,
+    "git": 46,
+    "cron": 47,
+    "systemctl": 40,
+    "python3": 41,
+    "apt-get": 36,
+    "tail": 42
+  },
+  "mean_len": 25.59,
+  "std_len": 11.68,
+  "known_ips": [
+    "10.0.4.21",
+    "10.0.4.22",
+    "10.0.4.30"
+  ],
+  "known_users": [
+    "deploy",
+    "ops",
+    "ubuntu",
+    "www-data"
+  ],
+  "total": 400
+}
