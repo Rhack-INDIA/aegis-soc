@@ -1,7 +1,7 @@
 .PHONY: install corpus run test eval docker clean
 
 install:
-	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt
 
 corpus:
 	python3 lab/gen_corpus.py

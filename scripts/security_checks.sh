@@ -22,8 +22,11 @@ note "bandit (SAST, fail on MEDIUM+)"
 bandit -ll -r app -f txt >/tmp/bandit.txt 2>&1; rc=$?
 tail -12 /tmp/bandit.txt; result $rc
 
-note "pip-audit (known CVEs in dependencies)"
+note "pip-audit (known CVEs — runtime)"
 pip-audit -r requirements.txt; result $?
+
+note "pip-audit (known CVEs — dev tooling)"
+pip-audit -r requirements-dev.txt; result $?
 
 note "hadolint (Dockerfile)"
 docker run --rm -i hadolint/hadolint:latest < Dockerfile; result $?

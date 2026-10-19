@@ -1,7 +1,9 @@
+# Runtime dependencies only — this is what ships in the container image.
+# Test/lint tooling lives in requirements-dev.txt so it never bloats the image
+# or appears in the runtime vulnerability surface.
 fastapi==0.146.0
 starlette==1.9.0
 uvicorn[standard]==0.54.0
 httpx==0.28.1
 pydantic==2.10.4
 google-cloud-firestore==2.20.1
-pytest>=8.0,<9.0
