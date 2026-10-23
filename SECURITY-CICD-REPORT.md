@@ -394,7 +394,13 @@ expensive in aggregate.** A demo is free; continuous production ingest is not, w
 | `POST /api/simulate/attack` in container | **12 alerts** |
 | Live HTTPS endpoint (Cloudflare Tunnel) | 200, ~0.68 s round trip |
 | Injection test via API | ASR 58.3% → 0.0% |
+| **Live deployment (AWS EC2)** | `http://3.106.151.93` — `/api/health` 200, full 11-rule attack chain, 14 alerts all triaged, injection ASR 0.583 → 0.0 verified from outside |
 | `terraform`/`deploy.sh` syntax | `bash -n` clean |
+
+The live instance was verified from a separate host, not from itself: health, alert queue contents,
+statistics and the injection endpoint were all fetched over the public internet. Its header
+originally read "GCP free tier" while running on AWS — corrected, along with a stat card that
+reported the ATT&CK corpus size instead of techniques actually detected.
 
 ---
 

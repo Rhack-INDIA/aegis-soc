@@ -92,7 +92,7 @@
 <body>
 <header>
   <div class="logo"><div class="shield">🛡</div>
-    <div>Aegis-SOC <div class="sub">Cloud-native AI security operations · GCP free tier</div></div>
+    <div>Aegis-SOC <div class="sub">Cloud-native AI security operations · single-container deployment</div></div>
   </div>
   <div class="spacer"></div>
   <div class="badge" id="h-rules">rules —</div>
@@ -115,7 +115,7 @@
     <div class="card crit"><div class="k">Critical</div><div class="v" id="s-crit">0</div></div>
     <div class="card high"><div class="k">High</div><div class="v" id="s-high">0</div></div>
     <div class="card ok"><div class="k">Blocked</div><div class="v" id="s-blocked">0</div></div>
-    <div class="card"><div class="k">Techniques covered</div><div class="v" id="s-tech">0</div></div>
+    <div class="card"><div class="k">Techniques detected</div><div class="v" id="s-tech">0</div></div>
   </div>
 
   <div class="bar">
@@ -193,7 +193,11 @@ async function load(){
     $("#s-crit").textContent = s.by_severity.critical || 0;
     $("#s-high").textContent = s.by_severity.high || 0;
     $("#s-blocked").textContent = s.by_status.blocked || 0;
-    $("#s-tech").textContent = s.techniques;
+    // distinct techniques actually present in the queue, not the size of the
+    // ATT&CK retrieval corpus — those are different numbers and conflating them
+    // overstates coverage.
+    const detected = new Set(ALERTS.map(a => a.technique).filter(Boolean)).size;
+    $("#s-tech").textContent = detected;
     $("#q-count").textContent = ALERTS.length ? `${ALERTS.length} shown` : "";
     render();
     if(!SEL && ALERTS.length) select(ALERTS[0].id);

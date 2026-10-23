@@ -396,6 +396,13 @@ live model the number must be re-measured, which is why `eval.py` stamps the mod
 Guardrails: budget alert at $1, `--max-instances=3`, no Cloud SQL / NAT / load balancer / GKE
 nodes, 14-day object lifecycle, and a hard cap on ingest volume.
 
+**Deployment note.** The figures above describe the Cloud Run reference design. The demonstration
+instance used for the viva runs on a single **AWS EC2 `t3.micro`** at roughly **$7.60/month**,
+because the organisation's GCP billing account was closed at delivery time and Cloud Run requires an
+active billing account. The container image and application code are identical; only the host
+differs. The $0 claim therefore describes the Cloud Run target architecture, not the instance that
+was actually demonstrated — stated here rather than left implicit.
+
 ---
 
 ## 7. Discussion

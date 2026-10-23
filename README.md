@@ -9,6 +9,13 @@ each alert with an LLM → gate containment behind a deterministic policy.
 Built for an M.Tech Advanced Cloud Computing project. `REPORT.md` contains the full write-up and
 the measured evaluation.
 
+**Live demo:** <http://3.106.151.93> (AWS EC2, SQLite store, mock LLM — press *Run attack simulation*)
+
+> **Deployment reality, stated plainly:** the reference architecture in `REPORT.md` targets Google
+> Cloud Run at $0/month. The demonstration instance runs on a single AWS EC2 `t3.micro`
+> (~$7.60/month) because the GCP billing account was closed at delivery time. Same image, same code,
+> different host — the $0 claim applies to the Cloud Run target, not to this instance.
+
 ```
 POST /ingest ──▶ normalise (ECS-lite)
                      │
