@@ -32,6 +32,13 @@ def test_benign_process_raises_nothing(client):
     assert r["alerts"] == 0
 
 
+def test_version_endpoint_reports_build(client):
+    """Deployment provenance must be queryable, otherwise 'the pipeline deployed
+    it' is an unfalsifiable claim."""
+    d = client.get("/api/version").json()
+    assert set(d) == {"sha", "built", "image"}
+
+
 # --------------------------------------------------------------------------- #
 # Stateful rules
 # --------------------------------------------------------------------------- #

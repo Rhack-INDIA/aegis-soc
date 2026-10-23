@@ -132,6 +132,17 @@ def stats() -> dict:
     return s
 
 
+@app.get("/api/version")
+def version() -> dict:
+    """Which build is actually running. Lets a deploy be verified from outside:
+    if this SHA changes after a push, the pipeline really did deploy it."""
+    return {
+        "sha": os.getenv("GIT_SHA", "dev"),
+        "built": os.getenv("BUILD_TIME", "unknown"),
+        "image": os.getenv("IMAGE_REF", "local"),
+    }
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {

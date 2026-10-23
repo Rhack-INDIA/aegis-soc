@@ -21,6 +21,13 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Build provenance, injected by CI. Lets /api/version prove which commit is live.
+ARG GIT_SHA=dev
+ARG BUILD_TIME=unknown
+ENV GIT_SHA=${GIT_SHA} \
+    BUILD_TIME=${BUILD_TIME}
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
