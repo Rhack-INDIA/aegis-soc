@@ -5,13 +5,15 @@ handler or a JS exception shows up as a failure rather than a guess.
 """
 import asyncio
 import json
+import os
 import sys
 import urllib.request
 
 import websockets
 
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://3.106.151.93/"
-DEV = "http://127.0.0.1:9222"
+# Configurable so a run can use a private browser instead of a shared :9222
+DEV = f"http://127.0.0.1:{os.getenv('CDP_PORT', '9222')}"
 
 errors, consoles = [], []
 
@@ -80,6 +82,11 @@ async def main():
         await c.js("document.querySelector('#btn-attack').click()")
         await asyncio.sleep(5)
         await state("after attack sim")
+
+        print("\n[1b] Attack simulation AGAIN (populated queue — dedupe regression)")
+        await c.js("document.querySelector('#btn-attack').click()")
+        await asyncio.sleep(6)
+        await state("after second sim")
 
         print("\n[2] Injection test")
         await c.js("document.querySelector('#btn-inject').click()")
