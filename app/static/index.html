@@ -257,9 +257,16 @@ function select(id){
   $("#btn-block").onclick = async () => {
     try{
       const d = await j(`/api/alerts/${id}/block`, {method:"POST"});
-      const failed = Object.entries(d.checks).filter(([k,v]) => !v).map(([k]) => k);
-      toast(d.allowed ? `Blocked ${d.action.target} (${d.action.rule})`
-                      : `Policy refused: ${failed.join(", ")}`);
+      const pretty = {
+        severity_high_or_critical: "severity below HIGH",
+        confidence_at_least_0_80: "confidence below 0.80",
+        technique_identified: "no ATT&CK technique",
+        not_anomaly_only: "anomaly-only alert",
+        source_ip_present: "no source IP",
+      };
+      const failed = Object.entries(d.checks).filter(([,v]) => !v).map(([k]) => pretty[k] || k);
+      toast(d.allowed ? `Blocked ${d.action.target} — ${d.action.rule}`
+                      : `Refused by policy (by design): ${failed.join(", ")}`);
       await load();
     }catch(e){ toast("Block failed: " + e.message); }
   };
@@ -276,14 +283,23 @@ async function retriage(id, defenses){
 }
 
 $("#btn-attack").onclick = async () => {
-  const b = $("#btn-attack"); b.disabled = true; b.textContent = "running…";
+  const b = $("#btn-attack"); b.disabled = true;
+  const label = b.textContent; b.textContent = "running…";
   try{
+    // A demo run must be deterministic. Without clearing first, the 5-minute
+    // dedupe window swallows every event and the button reports "0 alerts" —
+    // indistinguishable from a broken button. Clearing is explicit in the toast.
+    const before = ALERTS.length;
+    if(before) await j("/api/reset", {method:"POST"});
+    SEL = null;
     const r = await j("/api/simulate/attack", {method:"POST"});
-    toast(`${r.sent} events → ${r.alerts} alerts`);
+    const prefix = before ? `cleared ${before} previous · ` : "";
+    const extra = r.suppressed ? ` (${r.suppressed} deduped)` : "";
+    toast(`${prefix}${r.sent} events → ${r.alerts} alerts${extra}`);
     await load();
     if(r.payloads.length) select(r.payloads[0].id);
-  }catch(e){ toast(e.message); }
-  finally{ b.disabled = false; b.textContent = "▶ Run attack simulation"; }
+  }catch(e){ toast("Simulation failed: " + e.message); }
+  finally{ b.disabled = false; b.textContent = label; }
 };
 
 $("#btn-inject").onclick = async () => {

@@ -190,7 +190,8 @@ lab/          gen_corpus.py          # benign + attack + evasion corpus
 scripts/      eval.py                # regenerates every evaluation number
               loadtest.py            # throughput/latency measurement
               security_checks.sh     # local mirror of the CI gates
-tests/        test_aegis.py          # 13 behavioural tests
+              ui_smoke_cdp.py        # clicks every UI button over CDP, catches JS errors
+tests/        test_aegis.py          # 14 behavioural tests
 .github/      workflows/ci.yml, deploy.yml · dependabot.yml
 docs/         DEMO_SCRIPT.md VIVA_QA.md DEPLOY_NOTES.md 4-DAY_PLAN.md
               Aegis-SOC-Report.pdf · Aegis-SOC-Security-CICD.pdf

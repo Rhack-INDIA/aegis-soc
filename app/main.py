@@ -38,7 +38,8 @@ def _fingerprint(cand: dict, ev: Event) -> str:
     return "|".join([cand["rule_id"], ev.host or "-", ev.user or "-", ev.src_ip or "-"])
 
 
-def process_event(raw: dict, auto_triage: bool = True) -> list[dict]:
+def process_event(raw: dict, auto_triage: bool = True, dedupe: bool = True,
+                  counters: dict | None = None) -> list[dict]:
     """One event in → zero or one alert out. Returns created alerts."""
     try:
         ev = Event.from_raw(raw)
@@ -55,8 +56,13 @@ def process_event(raw: dict, auto_triage: bool = True) -> list[dict]:
     created: list[dict] = []
     for fused in fused_list:
         fp = _fingerprint(fused, ev)
-        if fp in store.recent_fingerprints(DEDUPE_SECONDS, ref_ts=ev.ts):
-            continue  # dedupe: same rule+entity inside the window
+        if dedupe and fp in store.recent_fingerprints(DEDUPE_SECONDS, ref_ts=ev.ts):
+            # Counted rather than silently dropped: a demo button that reports
+            # success while suppressing every event is indistinguishable from a
+            # broken button.
+            if counters is not None:
+                counters["suppressed"] = counters.get("suppressed", 0) + 1
+            continue
 
         alert = Alert(
             id=new_alert_id(), ts=ev.ts, fingerprint=fp,
@@ -254,10 +260,12 @@ ATTACK_SEQ: list[dict] = [
 def simulate_attack() -> dict:
     now = datetime.now(UTC)
     created = []
+    counters = {"suppressed": 0}
     for i, ev in enumerate(ATTACK_SEQ):
         ev = {**ev, "ts": (now + timedelta(milliseconds=400 * i)).isoformat()}
-        created.extend(process_event(ev, auto_triage=AUTO_TRIAGE))
-    return {"sent": len(ATTACK_SEQ), "alerts": len(created), "payloads": created}
+        created.extend(process_event(ev, auto_triage=AUTO_TRIAGE, counters=counters))
+    return {"sent": len(ATTACK_SEQ), "alerts": len(created),
+            "suppressed": counters["suppressed"], "payloads": created}
 
 
 @app.post("/api/simulate/injection")
