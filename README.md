@@ -116,6 +116,35 @@ fastest way to get a real cloud-hosted URL without a Firestore/Artifact Registry
 Caveats, stated plainly: the app has no user authentication, so opening 8080 to `0.0.0.0/0` is
 demo-only; use the tunnel URL and restrict the security group if it will stay up.
 
+## Continuous deployment (pull-based)
+
+`release.yml` builds, smoke-tests (asserting ≥10 alerts) and publishes
+`ghcr.io/rhack-india/aegis-soc:latest` on every push to `main`. The host runs **Watchtower**, which
+polls that tag and restarts the container when the digest changes. A merge to `main` therefore
+reaches production **without inbound SSH, open ports or cloud credentials in CI** — the instance
+pulls, nothing pushes to it.
+
+One-time host setup:
+
+```bash
+sudo docker pull ghcr.io/rhack-india/aegis-soc:latest
+sudo docker rm -f aegis
+sudo docker run -d --name aegis --restart unless-stopped -p 80:8080 \
+  -e STORE=sqlite -e SQLITE_PATH=/data/aegis.db -e AUTO_TRIAGE=1 \
+  -e APPLY_BLOCKS=simulated -v /opt/aegis-data:/data \
+  ghcr.io/rhack-india/aegis-soc:latest
+
+sudo docker run -d --name watchtower --restart unless-stopped \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  containrrr/watchtower --interval 60 aegis
+```
+
+After that, `git push` → ci → release → live, with about a one-minute lag.
+
+**Architecture caveat:** the published image is **linux/amd64 only** (GitHub runners are x86). That
+matches `t3.micro` — confirm with `uname -m` on the host. On an arm64 machine the image will not
+run; build locally there instead, or add a `docker buildx --platform linux/amd64,linux/arm64` step.
+
 ## API
 
 | Method | Path | Purpose |
