@@ -1,0 +1,73 @@
+name: release
+
+# Publishes a deployable image to GitHub Container Registry on every push to main.
+# The EC2 instance runs Watchtower, which polls this tag and restarts the
+# container when the digest changes — pull-based CD, so the instance needs no
+# inbound SSH, no open ports and no cloud credentials in this repo.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write        # required to push to ghcr.io
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  publish:
+    name: build, smoke-test, publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Plain docker CLI rather than marketplace actions: after
+      # aquasecurity/trivy-action@0.28.0 turned out not to exist we stopped
+      # trusting third-party action tags in this pipeline.
+      - name: Build image
+        run: |
+          IMAGE="${REGISTRY}/${GITHUB_REPOSITORY,,}:${GITHUB_SHA::7}"
+          docker build -t "$IMAGE" -t "${REGISTRY}/${GITHUB_REPOSITORY,,}:latest" .
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Smoke test before publishing
+        run: |
+          docker run -d --name smoke -p 8080:8080 \
+            -e STORE=sqlite -e SQLITE_PATH=/tmp/smoke.db -e AUTO_TRIAGE=1 "$IMAGE"
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/api/health && break || sleep 1
+          done
+          curl -sf http://127.0.0.1:8080/api/health | grep -q '"status":"ok"'
+          ALERTS=$(curl -s -X POST http://127.0.0.1:8080/api/simulate/attack \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["alerts"])')
+          echo "alerts produced: $ALERTS"
+          test "$ALERTS" -ge 10
+          docker rm -f smoke
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" \
+          | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+
+      - name: Push
+        run: |
+          docker push "$IMAGE"
+          docker push "${REGISTRY}/${GITHUB_REPOSITORY,,}:latest"
+          echo "published: ${REGISTRY}/${GITHUB_REPOSITORY,,}:latest"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Image published"
+            echo ""
+            echo '```'
+            echo "${REGISTRY}/${GITHUB_REPOSITORY,,}:latest"
+            echo "sha: ${{ github.sha }}"
+            echo '```'
+            echo "Watchtower on the host will pick this up within its poll interval."
+          } >> "$GITHUB_STEP_SUMMARY"
