@@ -15,6 +15,15 @@ from pptx.util import Pt
 PATH = sys.argv[1] if len(sys.argv) > 1 else "docs/Aegis-SOC-Slides.pptx"
 prs = Presentation(PATH)
 
+# This script was written for the 10-slide generated deck. The final deck has 12
+# slides and its own styling, so refuse rather than silently shrinking the fonts
+# on a slide that is already correctly laid out.
+if len(prs.slides) != 10:
+    raise SystemExit(
+        f"refusing: {PATH} has {len(prs.slides)} slides, this script only applies "
+        "to the 10-slide generated deck (see scripts/finalize_deck.py for the final deck)"
+    )
+
 changed = 0
 for idx, slide in enumerate(prs.slides):
     for shape in slide.shapes:
