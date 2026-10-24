@@ -19,6 +19,7 @@ build REPORT.md                        docs/Aegis-SOC-Report.pdf           "Aegi
 build SECURITY-CICD-REPORT.md          docs/Aegis-SOC-Security-CICD.pdf    "Aegis-SOC: CI/CD, Security Assurance and Resource Consumption"
 build docs/PRESENTATION.md             docs/Aegis-SOC-Presentation.pdf     "Aegis-SOC: Presentation Guide"
 build docs/PROJECT-DETAILS.md          docs/Aegis-SOC-Project-Details.pdf  "Aegis-SOC: Complete Project Dossier"
+build docs/PROBLEM-STATEMENT.md        docs/Aegis-SOC-Problem-Statement.pdf "Aegis-SOC: Problem Statement — Indian-Origin Cloud-Only SIEM for SMEs"
 
 echo "metadata check:"
 for f in docs/*.pdf; do
