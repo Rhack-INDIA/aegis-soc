@@ -397,7 +397,8 @@ Guardrails: budget alert at $1, `--max-instances=3`, no Cloud SQL / NAT / load b
 nodes, 14-day object lifecycle, and a hard cap on ingest volume.
 
 **Deployment note.** The figures above describe the Cloud Run reference design. The demonstration
-instance used for the viva runs on a single **AWS EC2 `t3.micro`** at roughly **$7.60/month**,
+instance used for the viva runs on a single **AWS EC2 `t3.micro`** at roughly **$12/month all-in**
+(compute ~$7.60, 12 GB gp3 ~$1, public IPv4 ~$3.65),
 because the organisation's GCP billing account was closed at delivery time and Cloud Run requires an
 active billing account. The container image and application code are identical; only the host
 differs. The $0 claim therefore describes the Cloud Run target architecture, not the instance that

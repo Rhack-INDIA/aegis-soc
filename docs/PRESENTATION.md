@@ -126,7 +126,7 @@ Volunteering these makes you look rigorous; being caught on them looks careless.
    identical; setting `GEMINI_API_KEY` switches it to the free tier, and the audit footer then
    reads `mode: gemini`."
 2. **"This instance is AWS, not Cloud Run."** "The report's $0 architecture is Cloud Run. This is a
-   `t3.micro` at ~$7.60/month because our GCP billing account was closed."
+   `t3.micro` at ~$12/month all-in (compute, EBS and public IPv4) because our GCP billing account was closed."
 3. **"Containment is simulated."** `APPLY_BLOCKS=simulated`. No edge rule is really created.
 4. **"Recall 1.0 is not a quality claim."** Circular corpus. 1/6 is the real number.
 5. **"The pipeline strip is a legend."** If they click the four stage chips and nothing happens:
@@ -144,7 +144,7 @@ Volunteering these makes you look rigorous; being caught on them looks careless.
 | Why one container, not microservices? | Failure surface and cost: three services means three deploy paths and three fat images against a 0.5 GB registry cap. The evolution path is in the report. |
 | How do you know the demo is the CI artefact? | `/api/version` returns the build SHA. On GHCR it's the commit CI tested; this box still builds locally, so it says `dev` — a known gap, stated in the report. |
 | What breaks at scale? | Brute-force counters are per-instance, and ingest is coupled to triage latency. Both are in §7.3. |
-| Cost, precisely? | $0 on the Cloud Run design; ~$7.60/month on the EC2 instance actually demonstrated. |
+| Cost, precisely? | $0 on the Cloud Run design; ~$12/month all-in on the EC2 instance actually demonstrated (compute + EBS + public IPv4). |
 | Is it secure? | Seven findings fixed incl. three HIGH CVEs, four accepted with a stated residual risk, zero open. Plus the app's own threat model. |
 | What would you do with two more weeks? | Live-model numbers, pySigma rules, evasion detections, state moved to Firestore, Pub/Sub decoupling, an uptime SLO. |
 

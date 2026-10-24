@@ -14,10 +14,10 @@ where each claim is evidenced. Deep detail lives in `REPORT.md` (architecture + 
 | Course | Advanced Cloud Computing (ECC 6103 / EAI 6304 / EAS 6304 / ESD 6304 / MCA20-E304C / ECS 6302) |
 | Author | Rudra Pratap — M.Tech, Semester 3 |
 | Repository | `github.com/Rhack-INDIA/aegis-soc` |
-| Live demo | `http://3.106.151.93` (AWS EC2 `t3.micro`, ~$7.60/month) |
+| Live demo | `http://3.106.151.93` (AWS EC2 `t3.micro`, ~$12/month all-in) |
 | Container image | `ghcr.io/rhack-india/aegis-soc:latest` (public) |
 | Stack | Python 3.12 · FastAPI · Pydantic · Docker · SQLite/Firestore · GitHub Actions |
-| Recurring cost | **$0** on the Cloud Run reference design · **~$7.60/month** on the EC2 demo instance |
+| Recurring cost | **$0** on the Cloud Run reference design · **~$12/month** on the EC2 demo instance (compute + EBS + public IPv4) |
 
 ---
 
@@ -175,7 +175,7 @@ Deploy is `workflow_dispatch` only, re-runs all gates, and uses Workload Identit
 1. Synthetic corpus, single host; no Windows telemetry, no network sensors, no real adversary.
 2. Triage runs a deterministic mock unless `GEMINI_API_KEY` is set — the UI labels it `simulated`.
 3. Containment is simulated (`APPLY_BLOCKS=simulated`); no edge rule is created.
-4. The demonstrated instance is AWS EC2 (~$7.60/month); the **$0 design is Cloud Run**, blocked by a
+4. The demonstrated instance is AWS EC2 (~$12/month all-in); the **$0 design is Cloud Run**, blocked by a
    closed GCP billing account.
 5. Brute-force counters are per-instance, so thresholds scale with instance count.
 6. No authentication on the console; HTTP only. Demo-only.

@@ -13,7 +13,7 @@ the measured evaluation.
 
 > **Deployment reality, stated plainly:** the reference architecture in `REPORT.md` targets Google
 > Cloud Run at $0/month. The demonstration instance runs on a single AWS EC2 `t3.micro`
-> (~$7.60/month) because the GCP billing account was closed at delivery time. Same image, same code,
+> (~$12/month all-in: compute, EBS, public IPv4) because the GCP billing account was closed at delivery time. Same image, same code,
 > different host — the $0 claim applies to the Cloud Run target, not to this instance.
 
 ```
@@ -108,7 +108,9 @@ aws ec2 get-console-output --region us-east-1 --instance-id <id> --latest \
   | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | head -1
 ```
 
-Costs: `t3.micro` is ~$0.0104/hr (~$7.60/month) plus a few cents of EBS; the 750 hr/month free tier
+Costs: `t3.micro` is ~$0.0104/hr (**~$7.60/month compute**), plus ~$1/month for the 12 GB gp3 volume
+and ~$3.65/month for the public IPv4 address (AWS bills public IPv4 since Feb 2024) — roughly
+**$12/month all-in**. The 750 hr/month free tier
 applies only to accounts younger than 12 months. **Terminate the instance when the demo is over** —
 the script prints the exact command. Unlike the GCP path this is not a $0 design; it is the
 fastest way to get a real cloud-hosted URL without a Firestore/Artifact Registry setup.
