@@ -4,3 +4,5 @@ pytest>=9.0.3,<10
 ruff>=0.17,<1
 bandit>=1.9,<2
 pip-audit>=2.10,<3
+# deck tooling: scripts/polish_slides.py regenerates docs/Aegis-SOC-Slides.pptx
+python-pptx>=1.0,<2
