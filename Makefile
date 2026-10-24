@@ -12,6 +12,11 @@ run:
 test:
 	python -m pytest
 
+# hermes verify shells out to `pip install -r requirements.txt`; on a PEP 668
+# host that fails unless the venv is active. This target makes that automatic.
+verify:
+	. .venv/bin/activate && hermes verify
+
 eval:
 	python3 scripts/eval.py
 
