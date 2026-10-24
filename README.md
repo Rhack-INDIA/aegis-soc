@@ -191,6 +191,9 @@ scripts/      eval.py                # regenerates every evaluation number
               loadtest.py            # throughput/latency measurement
               security_checks.sh     # local mirror of the CI gates
               ui_smoke_cdp.py        # clicks every UI button over CDP, catches JS errors
+              build_docs.sh          # rebuilds all PDFs with author/title metadata
+              set_doc_metadata.py    # normalises pptx/docx metadata to the author
+              polish_slides.py       # sets font sizes on the architecture slide
 tests/        test_aegis.py            # 14 behavioural tests (detection, triage, policy gate)
               test_api_contracts.py    # 16 API-shape + regression tests (30 total)
 .github/      workflows/ci.yml, deploy.yml · dependabot.yml
