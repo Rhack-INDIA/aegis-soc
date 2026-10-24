@@ -1,4 +1,4 @@
-.PHONY: install corpus run test eval docker clean
+.PHONY: install corpus run test verify eval docker clean
 
 install:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt
